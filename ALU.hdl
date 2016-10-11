@@ -1,0 +1,255 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/02/ALU.hdl
+
+/**
+ * The ALU (Arithmetic Logic Unit).
+ * Computes one of the following functions:
+ * x+y, x-y, y-x, 0, 1, -1, x, y, -x, -y, !x, !y,
+ * x+1, y+1, x-1, y-1, x&y, x|y on two 16-bit inputs, 
+ * according to 6 input bits denoted zx,nx,zy,ny,f,no.
+ * In addition, the ALU computes two 1-bit outputs:
+ * if the ALU output == 0, zr is set to 1; otherwise zr is set to 0;
+ * if the ALU output < 0, ng is set to 1; otherwise ng is set to 0.
+ */
+
+// Implementation: the ALU logic manipulates the x and y inputs
+// and operates on the resulting values, as follows:
+// if (zx == 1) set x = 0        // 16-bit constant
+// if (nx == 1) set x = !x       // bitwise not
+// if (zy == 1) set y = 0        // 16-bit constant
+// if (ny == 1) set y = !y       // bitwise not
+
+// if (f == 1)  set out = x + y  // integer 2's complement addition
+// if (f == 0)  set out = x & y  // bitwise and
+// if (no == 1) set out = !out   // bitwise not
+
+// if (out == 0) set zr = 1
+// if (out < 0) set ng = 1
+
+CHIP ALU {
+    IN  
+        x[16], y[16],  // 16-bit inputs   
+
+        zx, // zero the x input?
+        nx, // negate the x input?
+        zy, // zero the y input?
+        ny, // negate the y input?
+
+        f,  // compute out = x + y (if 1) or x & y (if 0)
+        no; // negate the out output?
+
+    OUT 
+        out[16], // 16-bit output
+        zr, // 1 if (out == 0), 0 otherwise
+        ng; // 1 if (out < 0),  0 otherwise
+
+    PARTS:
+   // x And !zx = zx'
+   // x Xor  nx = nx
+   // y equivalent to x
+
+//zx,nx
+Not(in=zx, out=nzx);
+And(a=x[0], b=nzx, out=x0); Xor(a=x0, b=nx, out=xa);
+And(a=x[1], b=nzx, out=x1); Xor(a=x1, b=nx, out=xb);
+And(a=x[2], b=nzx, out=x2); Xor(a=x2, b=nx, out=xc);
+And(a=x[3], b=nzx, out=x3); Xor(a=x3, b=nx, out=xd);
+And(a=x[4], b=nzx, out=x4); Xor(a=x4, b=nx, out=xe);
+And(a=x[5], b=nzx, out=x5); Xor(a=x5, b=nx, out=xf);
+And(a=x[6], b=nzx, out=x6); Xor(a=x6, b=nx, out=xg);
+And(a=x[7], b=nzx, out=x7); Xor(a=x7, b=nx, out=xh);
+And(a=x[8], b=nzx, out=x8); Xor(a=x8, b=nx, out=xi);
+And(a=x[9], b=nzx, out=x9); Xor(a=x9, b=nx, out=xj);
+And(a=x[10], b=nzx, out=x10); Xor(a=x10, b=nx, out=xk);
+And(a=x[11], b=nzx, out=x11); Xor(a=x11, b=nx, out=xl);
+And(a=x[12], b=nzx, out=x12); Xor(a=x12, b=nx, out=xm);
+And(a=x[13], b=nzx, out=x13); Xor(a=x13, b=nx, out=xn);
+And(a=x[14], b=nzx, out=x14); Xor(a=x14, b=nx, out=xo);
+And(a=x[15], b=nzx, out=x15); Xor(a=x15, b=nx, out=xp);
+
+//zy,ny
+Not(in=zy, out=nzy);
+And(a=y[0], b=nzy, out=y0); Xor(a=y0, b=ny, out=ya);
+And(a=y[1], b=nzy, out=y1); Xor(a=y1, b=ny, out=yb);
+And(a=y[2], b=nzy, out=y2); Xor(a=y2, b=ny, out=yc);
+And(a=y[3], b=nzy, out=y3); Xor(a=y3, b=ny, out=yd);
+And(a=y[4], b=nzy, out=y4); Xor(a=y4, b=ny, out=ye);
+And(a=y[5], b=nzy, out=y5); Xor(a=y5, b=ny, out=yf);
+And(a=y[6], b=nzy, out=y6); Xor(a=y6, b=ny, out=yg);
+And(a=y[7], b=nzy, out=y7); Xor(a=y7, b=ny, out=yh);
+And(a=y[8], b=nzy, out=y8); Xor(a=y8, b=ny, out=yi);
+And(a=y[9], b=nzy, out=y9); Xor(a=y9, b=ny, out=yj);
+And(a=y[10], b=nzy, out=y10); Xor(a=y10, b=ny, out=yk);
+And(a=y[11], b=nzy, out=y11); Xor(a=y11, b=ny, out=yl);
+And(a=y[12], b=nzy, out=y12); Xor(a=y12, b=ny, out=ym);
+And(a=y[13], b=nzy, out=y13); Xor(a=y13, b=ny, out=yn);
+And(a=y[14], b=nzy, out=y14); Xor(a=y14, b=ny, out=yo);
+And(a=y[15], b=nzy, out=y15); Xor(a=y15, b=ny, out=yp);
+
+
+   //Add16(
+   //a[0]=xa,a[1]=xb,a[2]=xc,a[3]=xd,a[4]=xe,a[5]=xf,a[6]=xg,a[7]=xh,a[8]=xi,a[9]=xj,a[10]=xk,a[11]=xl,
+   //a[12]=xm,a[13]=xn,a[14]=xo,a[15]=xp,
+   //b[0]=ya,b[1]=yb,b[2]=yc,b[3]=yd,b[4]=ye,b[5]=yf,b[6]=yg,b[7]=yh,b[8]=yi,b[9]=yj,b[10]=yk,b[11]=yl,
+   //b[12]=ym,b[13]=yn,b[14]=yo,b[15]=yp, 
+   //out=o1);
+
+  //Add16
+    HalfAdder(a=xa, b=ya, sum=d0, carry=c1);
+    FullAdder(a=xb, b=yb, c=c1, sum=d1, carry=c2);
+    FullAdder(a=xc, b=yc, c=c2, sum=d2, carry=c3);
+    FullAdder(a=xd, b=yd, c=c3, sum=d3, carry=c4);
+    FullAdder(a=xe, b=ye, c=c4, sum=d4, carry=c5);
+    FullAdder(a=xf, b=yf, c=c5, sum=d5, carry=c6);
+    FullAdder(a=xg, b=yg, c=c6, sum=d6, carry=c7);
+    FullAdder(a=xh, b=yh, c=c7, sum=d7, carry=c8);
+    FullAdder(a=xi, b=yi, c=c8, sum=d8, carry=c9);
+    FullAdder(a=xj, b=yj, c=c9, sum=d9, carry=c10);
+    FullAdder(a=xk, b=yk, c=c10, sum=d10, carry=c11);
+    FullAdder(a=xl, b=yl, c=c11, sum=d11, carry=c12);
+    FullAdder(a=xm, b=ym, c=c12, sum=d12, carry=c13);
+    FullAdder(a=xn, b=yn, c=c13, sum=d13, carry=c14);
+    FullAdder(a=xo, b=yo, c=c14, sum=d14, carry=c15);
+    FullAdder(a=xp, b=yp, c=c15, sum=d15, carry=c16);
+    
+  //f=1
+    And(a=d0, b=f, out=e0);
+    And(a=d1, b=f, out=e1);
+    And(a=d2, b=f, out=e2);
+    And(a=d3, b=f, out=e3);
+    And(a=d4, b=f, out=e4);
+    And(a=d5, b=f, out=e5);
+    And(a=d6, b=f, out=e6);
+    And(a=d7, b=f, out=e7);
+    And(a=d8, b=f, out=e8);
+    And(a=d9, b=f, out=e9);
+    And(a=d10, b=f, out=e10);
+    And(a=d11, b=f, out=e11);
+    And(a=d12, b=f, out=e12);
+    And(a=d13, b=f, out=e13);
+    And(a=d14, b=f, out=e14);
+    And(a=d15, b=f, out=e15);
+   
+
+
+ //f=0
+   And(a=xa, b=ya, out=f0);
+   And(a=xb, b=yb, out=f1);
+   And(a=xc, b=yc, out=f2);
+   And(a=xd, b=yd, out=f3);
+   And(a=xe, b=ye, out=f4);
+   And(a=xf, b=yf, out=f5);
+   And(a=xg, b=yg, out=f6);
+   And(a=xh, b=yh, out=f7);
+   And(a=xi, b=yi, out=f8);
+   And(a=xj, b=yj, out=f9);
+   And(a=xk, b=yk, out=f10);
+   And(a=xl, b=yl, out=f11);
+   And(a=xm, b=ym, out=f12);
+   And(a=xn, b=yn, out=f13);
+   And(a=xo, b=yo, out=f14);
+   And(a=xp, b=yp, out=f15);
+
+   Not(in=f, out=nf);
+   And(a=f0, b=nf, out=fa);
+   And(a=f1, b=nf, out=fb);
+   And(a=f2, b=nf, out=fc);
+   And(a=f3, b=nf, out=fd);
+   And(a=f4, b=nf, out=fe);
+   And(a=f5, b=nf, out=ff);
+   And(a=f6, b=nf, out=fg);
+   And(a=f7, b=nf, out=fh);
+   And(a=f8, b=nf, out=fi);
+   And(a=f9, b=nf, out=fj);
+   And(a=f10, b=nf, out=fk);
+   And(a=f11, b=nf, out=fl);
+   And(a=f12, b=nf, out=fm);
+   And(a=f13, b=nf, out=fn);
+   And(a=f14, b=nf, out=fo);
+   And(a=f15, b=nf, out=fp);
+
+ //f=0,1
+   Or(a=e0, b=fa, out=oa0);
+   Or(a=e1, b=fb, out=oa1);
+   Or(a=e2, b=fc, out=oa2);
+   Or(a=e3, b=fd, out=oa3);
+   Or(a=e4, b=fe, out=oa4);
+   Or(a=e5, b=ff, out=oa5);
+   Or(a=e6, b=fg, out=oa6);
+   Or(a=e7, b=fh, out=oa7);
+   Or(a=e8, b=fi, out=oa8);
+   Or(a=e9, b=fj, out=oa9);
+   Or(a=e10, b=fk, out=oa10);
+   Or(a=e11, b=fl, out=oa11);
+   Or(a=e12, b=fm, out=oa12);
+   Or(a=e13, b=fn, out=oa13);
+   Or(a=e14, b=fo, out=oa14);
+   Or(a=e15, b=fp, out=oa15);
+
+ //no
+   Xor(a=oa0, b=no, out=q0);
+   Xor(a=oa1, b=no, out=q1);
+   Xor(a=oa2, b=no, out=q2);
+   Xor(a=oa3, b=no, out=q3);
+   Xor(a=oa4, b=no, out=q4);
+   Xor(a=oa5, b=no, out=q5);
+   Xor(a=oa6, b=no, out=q6);
+   Xor(a=oa7, b=no, out=q7);
+   Xor(a=oa8, b=no, out=q8);
+   Xor(a=oa9, b=no, out=q9);
+   Xor(a=oa10, b=no, out=q10);
+   Xor(a=oa11, b=no, out=q11);
+   Xor(a=oa12, b=no, out=q12);
+   Xor(a=oa13, b=no, out=q13);
+   Xor(a=oa14, b=no, out=q14);
+   Xor(a=oa15, b=no, out=q15);
+  
+ //out
+   And(a=q0, b=true, out=out[0]);
+   And(a=q1, b=true, out=out[1]);
+   And(a=q2, b=true, out=out[2]);
+   And(a=q3, b=true, out=out[3]);
+   And(a=q4, b=true, out=out[4]);
+   And(a=q5, b=true, out=out[5]);
+   And(a=q6, b=true, out=out[6]);
+   And(a=q7, b=true, out=out[7]);
+   And(a=q8, b=true, out=out[8]);
+   And(a=q9, b=true, out=out[9]);
+   And(a=q10, b=true, out=out[10]);
+   And(a=q11, b=true, out=out[11]);
+   And(a=q12, b=true, out=out[12]);
+   And(a=q13, b=true, out=out[13]);
+   And(a=q14, b=true, out=out[14]);
+   And(a=q15, b=true, out=out[15]);
+    
+
+ //zr
+   Or(a=q0, b=q1, out=zr1);
+   Or(a=zr1, b=q2, out=zr2);
+   Or(a=zr2, b=q3, out=zr3);
+   Or(a=zr3, b=q4, out=zr4);
+   Or(a=zr4, b=q5, out=zr5);
+   Or(a=zr5, b=q6, out=zr6);
+   Or(a=zr6, b=q7, out=zr7);
+   Or(a=zr7, b=q8, out=zr8);
+   Or(a=zr8, b=q9, out=zr9);
+   Or(a=zr9, b=q10, out=zr10);
+   Or(a=zr10, b=q11, out=zr11);
+   Or(a=zr11, b=q12, out=zr12);
+   Or(a=zr12, b=q13, out=zr13);
+   Or(a=zr13, b=q14, out=zr14);
+   Or(a=zr14, b=q15, out=zr15);
+   Xor(a=zr15, b=true, out=zr);
+ 
+ //ng
+   And(a=q15, b=true, out=ng);
+   
+
+
+
+  
+   
+  
+}
